@@ -1,0 +1,10 @@
+# Ignore all files in the build/ directory
+build/
+
+#Generally the xcuserdata is safe to ignore for individual projects. Each user gets their own file that saves userstate, folders opened, last file opened, that sort of stuff. It does contain your schemes. If it is the first time opening and the file doesn't exist, Xcode will create it for you.
+xcuserdata/
+# But if you're going to kill personal workspaces, at least keep the shared ones...
+!xcshareddata/
+
+# OSX files
+.DS_Store
