@@ -38,7 +38,7 @@
 
 /*!
  @abstract Determine wether parse specialized units asynchronously.
- @discussion YES if you need parse units asynchronously. Default value NO. Note if set this property to YES, then delegate callback methods will be sent NOT from the main thread but from PARSE_QUEUE thread.
+ @discussion YES if you need parse units asynchronously. Default value NO. Note if set this property to YES, then delegate callback methods will be sent NOT from the main thread but from PARSE_QUEUE thread. I.e in this case you need to dispatch async to the main queue in the body of your delegate methods of HSFClientDelegate.
  */
 @property (nonatomic,getter=isParseUnitsAsynchronously) BOOL parseUnitsAsynchronously;
 

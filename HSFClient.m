@@ -32,7 +32,7 @@ static NSString *_password = @"";
 @property (nonatomic) NSInteger unitInProgress;
 @property (strong,nonatomic) dispatch_queue_t parseQueue;
 @property (nonatomic) NSTimeInterval timeout;
-@property (nonatomic) NSUInteger reloadAttemptsMade;
+@property (nonatomic) NSUInteger failAttemptsMade;
 @property (strong,nonatomic) NSString *fixedTag;
 @property (strong,nonatomic) NSMutableString *bufferString;
 
@@ -56,7 +56,7 @@ static NSString *_password = @"";
 
 -(BOOL)isParsing
 {
-    return (self.unitInProgress) ? NO : YES;
+    return (self.unitInProgress) ? YES : NO;
 }
 
 -(NSArray*)unitTags
@@ -153,7 +153,7 @@ static NSString *_password = @"";
     self.unitRecognized = 0;
     self.unitProcessed = 0;
     self.timeout = 0.0;
-    self.reloadAttemptsMade = 1;
+    self.failAttemptsMade = 0;
 }
 
 -(void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
@@ -256,6 +256,7 @@ static NSString *_password = @"";
         for (NSString *tag in self.unitTags){
             total += [root countOfNodesByName:tag];
         }
+        if (self.isParseUnitsAsynchronously) while (self.isParsing) {};
         if (self.unitProcessed != total){
             [NSException raise:HSFClientMissedElementException format:@"Number of elements counted from entire xml document mismatches with number of processed elements, unitProcessed = %d, total = %d",self.unitProcessed,total];
         }
@@ -268,13 +269,13 @@ static NSString *_password = @"";
 {
     self.connection = nil;
     self.cumulativeData = nil;
-    if (self.timeout < MAX_TIMEOUT) {
-        self.timeout += TIMEOUT_STEP;
-        ++self.reloadAttemptsMade;
+    ++self.failAttemptsMade;
+    if ((self.action.loadAttempts > 1) && self.action.maxTimeout && self.timeout < self.action.maxTimeout) {
+        self.timeout += (double)self.action.maxTimeout/(self.action.loadAttempts-1);
         [self performSelector:@selector(loadAsynchronously) withObject:nil afterDelay:self.timeout];
     }  else {
         self.isInLoading = NO;
-        NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithDictionary:@{ATTEMPTS_KEY:[NSString stringWithFormat:@"%d",self.reloadAttemptsMade]}];
+        NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithDictionary:@{ATTEMPTS_KEY:[NSString stringWithFormat:@"%d",self.failAttemptsMade]}];
         [userInfo addEntriesFromDictionary:error.userInfo];
         NSError *finalError = [NSError errorWithDomain:[error domain] code:[error code] userInfo:[userInfo copy]];
         if([self.delegate respondsToSelector:@selector(DID_FAIL_LOADING_SELECTOR)]){

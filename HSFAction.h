@@ -15,6 +15,18 @@
 @interface HSFAction : NSObject
 
 /*!
+ @abstract Automatic reload attempts if some connection errors appeared.
+ @discussion After this number of attempts automatic reload won't be taken anymore. If you want only only one attempt set 0 or 1.
+ */
+@property (nonatomic) NSUInteger loadAttempts;
+
+/*!
+ @abstract Automatic reload maximum timeout.
+ @discussion Using this value and number of loadAttempts timeout step will be determined. After the expiration of this step new shot to connect will be taken.
+ */
+@property (nonatomic) NSTimeInterval maxTimeout;
+
+/*!
  @abstract HTTP header fields.
  @discussion This getter is abstract must be customized in a subclass. Note: Content-Length will be derived from the request if presented.
  */
