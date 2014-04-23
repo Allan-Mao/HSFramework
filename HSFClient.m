@@ -12,8 +12,8 @@
 #import "HSFExceptions.h"
 #import "HSFNode+NSXMLParserDelegate.h"
 
-static NSString *_username = @"";
-static NSString *_password = @"";
+//static NSString *_username = @"";
+//static NSString *_password = @"";
 
 @interface HSFClient()
 
@@ -72,28 +72,6 @@ static NSString *_password = @"";
 }
 
 #pragma mark Public Methods
-
-+(NSString*)username
-{
-    //_username - global static variable
-    return _username;
-}
-
-+(void)setUsername:(NSString *)username
-{
-    _username = username;
-}
-
-+(NSString*)password
-{
-    //_password - global static variable
-    return _password;
-}
-
-+(void)setPassword:(NSString *)password
-{
-    _password = password;
-}
 
 +(HSFNode*)loadSynchronouslyAction:(HSFAction*)action response:(NSURLResponse **)response error:(NSError **)error;
 {
@@ -287,8 +265,7 @@ static NSString *_password = @"";
 -(void)connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
 {
     if ([challenge previousFailureCount] == 0){
-        NSURLCredential *newCredential = [NSURLCredential credentialWithUser:[[self class] username] password:[[self class] password] persistence:NSURLCredentialPersistenceNone];
-        [[challenge sender] useCredential:newCredential forAuthenticationChallenge:challenge];
+        [[challenge sender] useCredential:self.action.credential forAuthenticationChallenge:challenge];
     } else {
         [[challenge sender] cancelAuthenticationChallenge:challenge];
         NSError *error = [NSError errorWithDomain:HSFAuthenticationErrorDomain code:403 userInfo:nil];

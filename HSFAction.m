@@ -123,6 +123,11 @@
     return signature;
 }
 
+-(NSURLCredential*)credential
+{
+    return nil;
+}
+
 #pragma mark Private Methods
 
 /*

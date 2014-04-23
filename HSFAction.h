@@ -91,4 +91,11 @@
  */
 -(id)initWithURL:(NSURL*)url;
 
+/*!
+ @abstract Credential for action.
+ @discussion Is meant to be implemented in subclass.
+ @return Credential which will be used by HSFClient for authentication challenge. Returns nil by default.
+ */
+-(NSURLCredential*)credential;
+
 @end

@@ -81,31 +81,6 @@
 #pragma mark Tasks
 
 /*!
- @abstract Username for authentication challenge.
- @discussion This getter is for a class variable. Could be customized in a subclass.
- */
-+(NSString*)username;
-
-/*!
- @abstract Set username for authentication challenge.
- @discussion Class variable setter.
- */
-+(void)setUsername:(NSString*)username;
-
-/*!
- @abstract Password for authentication challenge.
- @discussion This getter is for a class variable. Could be customized in a subclass.
- */
-+(NSString*)password;
-
-/*!
- @abstract Password for authentication challenge.
- @discussion Class variable setter.
- */
-+(void)setPassword:(NSString*)password;
-
-
-/*!
  @abstract Load data from server synchronously.
  @discussion This method sends a request to a server (based on given HSFAction) and returns a result in the form of HSFNode tree. Note: this is class method that's why no authentication challenge callback.
  @param response Out parameter for the URL response returned by the server.
