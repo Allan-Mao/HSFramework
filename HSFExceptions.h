@@ -39,10 +39,10 @@
 #define HSFServiceResponseException @"HSFServiceResponseException"
 
 /*!
- @abstract HSFClient missed an element.
- @discussion The exception is raised when HSFClient missed an element while extracting specialized units. The test performed only in DEBUG mode.
+ @abstract HSFCatcher missed an element.
+ @discussion The exception is raised when HSFCatcher missed an element while extracting specialized units. The test performed only in DEBUG mode.
  */
-#define HSFClientMissedElementException @"HSFClientMissedElementException"
+#define HSFCatcherMissedElementException @"HSFCatcherMissedElementException"
 
 /*!
  @abstract NSFNode child is nil.

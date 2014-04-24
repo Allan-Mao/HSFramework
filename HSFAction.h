@@ -10,7 +10,7 @@
 
 /*!
  @abstract SOAP action with NSURLRequest as a derived property.
- @discussion In essence SOAP exchange represents special XML document sending through HTTP POST method. This class encapsulates SOAP envelope with NSURLRequest as a property. Request is constructed based on data in the envelope. We assume that this class will be subclassed for the concrete application with all necessary methods overridden to fulfil specific exchange. That's why this framework is not bound to soap1.2 or soap1.1. This is an abstract class, won't work without subclassing. This class for HSFClient is like a NSURLRequest for NSURLConnection.
+ @discussion In essence SOAP exchange represents special XML document sending through HTTP POST method. This class encapsulates SOAP envelope with NSURLRequest as a property. Request is constructed based on data in the envelope. We assume that this class will be subclassed for the concrete application with all necessary methods overridden to fulfil specific exchange. That's why this framework is not bound to soap1.2 or soap1.1. This is an abstract class, won't work without subclassing. This class for HSFCatcher is like a NSURLRequest for NSURLConnection.
  */
 @interface HSFAction : NSObject
 
@@ -94,7 +94,7 @@
 /*!
  @abstract Credential for action.
  @discussion Is meant to be implemented in subclass.
- @return Credential which will be used by HSFClient for authentication challenge. Returns nil by default.
+ @return Credential which will be used by HSFCatcher for authentication challenge. Returns nil by default.
  */
 -(NSURLCredential*)credential;
 
