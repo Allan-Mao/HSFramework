@@ -10,7 +10,6 @@
 #import "HSFAction.h"
 #import "HSFCommon.h"
 #import "HSFExceptions.h"
-#import "HSFNode+NSXMLParserDelegate.h"
 
 static id <HSFCatcherHandler> _handler;
 
@@ -79,7 +78,7 @@ static id <HSFCatcherHandler> _handler;
 +(HSFNode*)loadSynchronouslyWithAction:(HSFAction*)action response:(NSURLResponse **)response error:(NSError **)error;
 {
     NSData *data = [NSURLConnection sendSynchronousRequest:action.request returningResponse:response error:error];
-    return [HSFNode nodeTreeFromData:data];
+    return [HSFNode nodeTreeFromData:data delegate:nil];
 }
 
 -(void)loadAsynchronouslyWithAction:(HSFAction*)action
@@ -126,6 +125,15 @@ static id <HSFCatcherHandler> _handler;
 {
     [NSException raise:NSInternalInconsistencyException format:@"Use designated initializer."];
     return [super init];
+}
+
+#pragma mark HSFNodeParseErrorHandler protocol
+
+-(void)node:(HSFNode *)node didFailParsingWithError:(NSError *)error
+{
+    NSError *parseError = [[NSError alloc] initWithDomain:HSFParseErrorDomain code:1 userInfo:nil];
+    [self.connection cancel];
+    [self notifyDelegateFailLoadingWithError:parseError];
 }
 
 #pragma mark NSURLConnectionDataDelegate
@@ -211,7 +219,7 @@ static id <HSFCatcherHandler> _handler;
                 NSData *dataToParse = [stringToProcess dataUsingEncoding:NSUTF8StringEncoding];
                 
                 [self performParseOperation:^{
-                    HSFNode *root = [HSFNode nodeTreeFromData:dataToParse];
+                    HSFNode *root = [HSFNode nodeTreeFromData:dataToParse delegate:self];
                     ++self.unitProcessed;
                     [self.delegate performSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR) withObject:self withObject:[root.children firstObject]];
                 }];
@@ -228,7 +236,7 @@ static id <HSFCatcherHandler> _handler;
         [NSException raise:HSFServiceResponseException format:@"No data received while loading."];
     
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR)]){
-        HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData];
+        HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData delegate:self];
         // root is pointer to tree root element
         [self.delegate performSelector:@selector(CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR) withObject:self withObject:[root.children firstObject]];
     }
@@ -236,7 +244,7 @@ static id <HSFCatcherHandler> _handler;
     // Perform this text only in DEBUG mode.
 #ifdef DEBUG
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] && [self.unitTags count] > 0){
-        HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData];
+        HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData delegate:self];
         NSUInteger total = 0;
         for (NSString *tag in self.unitTags){
             total += [root countOfNodesByName:tag];

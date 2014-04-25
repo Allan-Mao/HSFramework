@@ -27,3 +27,9 @@
  @discussion Error occurred during authentication process.
  */
 #define HSFAuthenticationErrorDomain @"HSFAuthenticationErrorDomain"
+
+/*!
+ @abstract Parse error domain.
+ @discussion Error occurred during parsing process.
+ */
+#define HSFParseErrorDomain @"HSFParseErrorDomain"

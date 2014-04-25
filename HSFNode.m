@@ -20,6 +20,35 @@
 
 #pragma mark Properties
 
+-(HSFNode*)searchNodeByName:(NSString*)name
+{
+    if ([self.children count]){
+        NSUInteger index = [self.children indexOfObjectPassingTest:^BOOL(id obj, NSUInteger idx, BOOL *stop){
+            HSFNode *node = (HSFNode*)obj;
+            return [name isEqualToString:node.name];
+        }];
+        if (index != NSNotFound){
+            return self.children[index];
+        } else {
+            for (HSFNode *node in self.children){
+                HSFNode *testNode = [node searchNodeByName:name];
+                if  (testNode) return testNode;
+            }
+        }
+    }
+    
+    return nil;
+}
+
+-(HSFNode*)rootNode
+{
+    if (self.parent == nil){
+        return self;
+    } else {
+        return self.parent.rootNode;
+    }
+}
+
 -(NSString*)value
 {
     if(!_value)_value = @"";

@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+@protocol HSFNodeParseErrorHandler;
+
 /*!
  @abstract XML node of SOAP envelope XML document.
  @discussion An instances of this class construct a tree which represents SOAP XML document.
@@ -15,10 +17,20 @@
 @interface HSFNode : NSObject
 
 /*!
+ @abstract Required property for HSFNode+NSXMLParserDelegate.
+ */
+@property id <HSFNodeParseErrorHandler> parseErrorHandler;
+
+/*!
  @abstract Parent node.
  @discussion Every node can have multiple children elements and only one parent.
  */
 @property (strong,nonatomic,readonly) HSFNode *parent;
+
+/*!
+ @abstract Root node of the tree.
+ */
+@property (nonatomic,readonly) HSFNode *rootNode;
 
 /*!
  @abstract Dictionary derived from the node tree.
@@ -57,6 +69,13 @@
 @property (strong,nonatomic,readonly) NSArray *children; //Of nodes
 
 #pragma mark Tasks
+
+/*!
+ @abstract Search node's tree for node with specified name.
+ @param name Name of an element to search.
+ @retrun Node with specified name ro nil.
+ */
+-(HSFNode*)searchNodeByName:(NSString*)name;
 
 /*!
  @abstract Count of nodes with specified name.

@@ -12,12 +12,13 @@
 
 @implementation HSFNode (NSXMLParserDelegate)
 
-+(HSFNode*)nodeTreeFromData:(NSData*)data
++(HSFNode*)nodeTreeFromData:(NSData*)data delegate:(id<HSFNodeParseErrorHandler>)delegate
 {
     HSFNode *root = [[HSFNode alloc] initWithName:ROOT_NODE_NAME];
     NSXMLParser *parser = [[NSXMLParser alloc] initWithData:data];
     parser.delegate = root;
     root.treeData = data;
+    root.parseErrorHandler = delegate;
     [parser parse];
     return root;
 }
@@ -48,7 +49,8 @@
 
 -(void)parser:(NSXMLParser *)parser parseErrorOccurred:(NSError *)parseError
 {
-    [NSException raise:HSFXMLParserException format:@"treeData: %@\nparserError:%@",[[NSString alloc] initWithData:self.treeData encoding:NSUTF8StringEncoding], parseError];
+//    [NSException raise:HSFXMLParserException format:@"treeData: %@\nparserError:%@",[[NSString alloc] initWithData:self.treeData encoding:NSUTF8StringEncoding], parseError];
+    [self.rootNode.parseErrorHandler node:self didFailParsingWithError:parseError];
 }
 
 @end
