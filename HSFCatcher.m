@@ -93,6 +93,8 @@ static id <HSFCatcherHandler> _handler;
     self.credential = action.credential;
     self.loadAttempts = action.loadAttempts;
     self.maxTimeout = action.maxTimeout;
+    self.unitTags = [action.unitTags copy];
+    self.parseUnitsAsynchronously = action.parseUnitsAsynchronously;
     self.connection = [[NSURLConnection alloc] initWithRequest:self.fixedRequest delegate:self];
 }
 
@@ -231,8 +233,6 @@ static id <HSFCatcherHandler> _handler;
         [self.delegate performSelector:@selector(CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR) withObject:self withObject:[root.children firstObject]];
     }
     
-    [[[self class] handler] catcherFinished:self];
-    
     // Perform this text only in DEBUG mode.
 #ifdef DEBUG
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] && [self.unitTags count] > 0){
@@ -247,7 +247,7 @@ static id <HSFCatcherHandler> _handler;
         }
     }
 #endif
-    self.isInLoading = NO;
+    [self finishJobAndHotifyHandler];
 }
 
 -(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
@@ -259,7 +259,6 @@ static id <HSFCatcherHandler> _handler;
         self.timeout += (double)self.maxTimeout/(self.loadAttempts-1);
         [self performSelector:@selector(reloadAsynchronously) withObject:nil afterDelay:self.timeout];
     }  else {
-        self.isInLoading = NO;
         NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithDictionary:@{ATTEMPTS_KEY:[NSString stringWithFormat:@"%d",self.failAttemptsMade]}];
         [userInfo addEntriesFromDictionary:error.userInfo];
         NSError *finalError = [NSError errorWithDomain:[error domain] code:[error code] userInfo:[userInfo copy]];
@@ -278,13 +277,14 @@ static id <HSFCatcherHandler> _handler;
     }
 }
 
+#pragma mark Private Methods
+
 -(void)notifyDelegateAuthenticationFailWithError:(NSError*)error
 {
     if ([self.delegate respondsToSelector:@selector(DID_FAIL_AUTH_SELECTOR)]){
         [self.delegate performSelector:@selector(DID_FAIL_AUTH_SELECTOR) withObject:self withObject:error];
     }
-    [[[self class] handler] catcherFinished:self];
-    
+    [self finishJobAndHotifyHandler];
 }
 
 -(void)notifyDelegateFailLoadingWithError:(NSError*)error
@@ -292,10 +292,15 @@ static id <HSFCatcherHandler> _handler;
     if([self.delegate respondsToSelector:@selector(DID_FAIL_LOADING_SELECTOR)]){
         [self.delegate performSelector:@selector(DID_FAIL_LOADING_SELECTOR) withObject:self withObject:error];
     }
-    [[[self class] handler] catcherFinished:self];
+    [self finishJobAndHotifyHandler];
 }
 
-#pragma mark Private Methods
+-(void)finishJobAndHotifyHandler
+{
+    self.connection =nil;
+    self.isInLoading = NO;
+    [[[self class] handler] catcherFinished:self];
+}
 
 -(void)performParseOperation:(void (^)())block
 {

@@ -31,7 +31,7 @@ static HSFClient *_sharedHSFClient;
         [NSException raise:NSInvalidArgumentException format:@"The delegate or action is not set."];
     }
     @synchronized(self){
-        HSFCatcher *catcher = [self dequeReusableCatcherWithDelegate:delegate];
+        HSFCatcher *catcher = [self supplyCatcherWithDelegate:delegate];
         [catcher loadAsynchronouslyWithAction:action];
         return catcher;
     }
@@ -42,26 +42,16 @@ static HSFClient *_sharedHSFClient;
     return [HSFCatcher loadSynchronouslyWithAction:action response:response error:error];
 }
 
--(HSFCatcher*)dequeReusableCatcherWithDelegate:(id<HSFCatcherDelegate>)delegate
+-(HSFCatcher*)supplyCatcherWithDelegate:(id<HSFCatcherDelegate>)delegate
 {
     @synchronized(self){
         if (!delegate){
             [NSException raise:NSInvalidArgumentException format:@"The delegate is not set."];
         }
-        NSUInteger index = [self.catchers indexOfObjectPassingTest:^BOOL(id obj, NSUInteger idx, BOOL *stop){
-            HSFCatcher *c = (HSFCatcher*)obj;
-            return !c.isInLoading;
-        }];
         
-        HSFCatcher *catcher;
-        
-        if (index != NSNotFound){
-            catcher = self.catchers[index];
-        } else {
-            catcher = [[HSFCatcher alloc] initWithDelegate:delegate];
-            [self.catchers addObject:catcher];
-        }
-        
+        HSFCatcher * catcher = [[HSFCatcher alloc] initWithDelegate:delegate];
+        [self.catchers addObject:catcher];
+       
         return catcher;
     }
 }
@@ -73,10 +63,7 @@ static HSFClient *_sharedHSFClient;
     @synchronized(self) {
         if (![self.catchers containsObject:catcher])
             [NSException raise:NSInvalidArgumentException format:@"The catcher is not known."];
-        
-        if ([self.catchers count] > MAX_CATCHERS){
-            [self.catchers removeObject:catcher];
-        }
+        [self.catchers removeObject:catcher];
     }
 }
 

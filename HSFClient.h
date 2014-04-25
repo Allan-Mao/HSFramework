@@ -18,7 +18,7 @@
 
 /*!
  @abstract Perform SOAP action on a server, and handle response asynchronously.
- @discussion This methods creates new or reuse HSFCatcher and performs SOAP action.
+ @discussion This methods creates new HSFCatcher and performs SOAP action.
  @param action HSFAction to perform.
  @param delegate HSFCatcherDelegate which will receive callbacks about processing request.
  @return HSFCatcher which were assigned to handle network job for this action.

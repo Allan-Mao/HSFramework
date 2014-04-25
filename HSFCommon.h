@@ -6,8 +6,6 @@
 //  Copyright (c) 2014 Ilnar Aliullov. All rights reserved.
 //
 
-#define MAX_CATCHERS 10
-
 #define HSF_ACTION_CLASS_NAME @"HSFAction"
 
 #define ATTEMPTS_KEY @"attempts"

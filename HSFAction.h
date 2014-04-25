@@ -15,6 +15,18 @@
 @interface HSFAction : NSObject
 
 /*!
+ @abstract Determine wether parse specialized units asynchronously.
+ @discussion Will be copied to HSFCatcher's parseUnitsAsynchronously.
+ */
+@property (nonatomic,getter=isParseUnitsAsynchronously) BOOL parseUnitsAsynchronously;
+
+/*!
+ @abstract Tags that represent units.
+ @discussion Will be copied to HSFCatcher's unitTags.
+ */
+@property (strong,nonatomic) NSArray* unitTags;
+
+/*!
  @abstract Automatic reload attempts if some connection errors appeared.
  @discussion After this number of attempts automatic reload won't be taken anymore. If you want only only one attempt set 0 or 1.
  */
