@@ -20,6 +20,11 @@
 
 #pragma mark Properties
 
+-(NSTimeInterval)timeout
+{
+    return DEFAULT_CONNECTION_TIMEOUT;
+}
+
 -(NSDictionary*)HTTPHeaderFields
 {
     [NSException raise:HSFAbstractNotOverridden format:@"You must override %@ in a subclass", NSStringFromSelector(_cmd)];
@@ -86,7 +91,7 @@
     self = [super init];
     if (self) {
         // _request is a private instance variable.
-        _request = [[NSMutableURLRequest alloc] initWithURL:url];
+        _request = [[NSMutableURLRequest alloc] initWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:self.timeout];
         _url = url;
         [_request setHTTPMethod:POST_METHOD];
         

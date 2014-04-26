@@ -206,10 +206,18 @@
 
 /*!
  @abstract Handle authentication challenge error.
- @discussion This task is called if authentication  challenge is failed.
+ @discussion This task is called if authentication challenge is failed.
  @param catcher HSFCatcher which handled a connection.
  @param error An error object containing details of the fail.
  */
 -(void)catcher:(HSFCatcher*)catcher didFailAuthenticationWithError:(NSError*)error;
+
+/*!
+ @abstract Handle network connection error.
+ @discussion This callback is called if some porblems occured with internet connection. Error from
+ @param catcher HSFCatcher which handled a connection.
+ @param error An error object containing details of the fail.
+ */
+-(void)catcher:(HSFCatcher*)catcher didFailConnectionWithError:(NSError*)error;
 
 @end

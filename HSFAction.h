@@ -15,6 +15,11 @@
 @interface HSFAction : NSObject
 
 /*!
+ @abstract Timeout in seconds which will be used for NSURLRequest instance creation. By default 60 seconds.
+ */
+@property (nonatomic,readonly) NSTimeInterval timeout;
+
+/*!
  @abstract Determine wether parse specialized units asynchronously.
  @discussion Will be copied to HSFCatcher's parseUnitsAsynchronously.
  */
