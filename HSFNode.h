@@ -17,9 +17,9 @@
 @interface HSFNode : NSObject
 
 /*!
- @abstract Required property for HSFNode+NSXMLParserDelegate.
+ @abstract Storage to keep any necessary data.
  */
-@property id <HSFNodeParseErrorHandler> parseErrorHandler;
+@property (strong,nonatomic) NSDictionary *userInfo;
 
 /*!
  @abstract Parent node.
@@ -73,7 +73,7 @@
 /*!
  @abstract Search node's tree for node with specified name.
  @param name Name of an element to search.
- @retrun Node with specified name ro nil.
+ @retrun Node with specified name or nil.
  */
 -(HSFNode*)searchNodeByName:(NSString*)name;
 

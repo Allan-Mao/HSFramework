@@ -12,14 +12,16 @@
 
 @implementation HSFNode (NSXMLParserDelegate)
 
-+(HSFNode*)nodeTreeFromData:(NSData*)data delegate:(id<HSFNodeParseErrorHandler>)delegate
++(HSFNode*)nodeTreeFromData:(NSData*)data error:(NSError**)error
 {
     HSFNode *root = [[HSFNode alloc] initWithName:ROOT_NODE_NAME];
     NSXMLParser *parser = [[NSXMLParser alloc] initWithData:data];
     parser.delegate = root;
     root.treeData = data;
-    root.parseErrorHandler = delegate;
     [parser parse];
+    if (error != NULL){
+        *error = (NSError*)root.userInfo[HSF_PARSE_ERROR_KEY];
+    }
     return root;
 }
 
@@ -36,7 +38,7 @@
 {
     if(![self.value length]){
         self.value = string;
-    }else{
+    } else {
         self.value = [NSString stringWithFormat:@"%@%@",self.value,string];
     }
 }
@@ -50,7 +52,8 @@
 -(void)parser:(NSXMLParser *)parser parseErrorOccurred:(NSError *)parseError
 {
 //    [NSException raise:HSFXMLParserException format:@"treeData: %@\nparserError:%@",[[NSString alloc] initWithData:self.treeData encoding:NSUTF8StringEncoding], parseError];
-    [self.rootNode.parseErrorHandler node:self didFailParsingWithError:parseError];
+    NSError *error = [NSError errorWithDomain:HSFParseErrorDomain code:[parseError code] userInfo:[parseError userInfo]];
+    [[self rootNode] setUserInfo:@{HSF_PARSE_ERROR_KEY:error}];
 }
 
 @end

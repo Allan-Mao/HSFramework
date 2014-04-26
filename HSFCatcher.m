@@ -75,10 +75,18 @@ static id <HSFCatcherHandler> _handler;
 
 #pragma mark Public Methods
 
+//TODO: shift it to HSFClient
 +(HSFNode*)loadSynchronouslyWithAction:(HSFAction*)action response:(NSURLResponse **)response error:(NSError **)error;
 {
     NSData *data = [NSURLConnection sendSynchronousRequest:action.request returningResponse:response error:error];
-    return [HSFNode nodeTreeFromData:data delegate:nil];
+    NSError *parseError;
+    HSFNode * root = [HSFNode nodeTreeFromData:data error:&parseError];
+    if (parseError != NULL) *error = parseError;
+    if ([root.children count]){
+        return [root.children firstObject];
+    } else {
+        return nil;
+    }
 }
 
 -(void)loadAsynchronouslyWithAction:(HSFAction*)action
@@ -125,15 +133,6 @@ static id <HSFCatcherHandler> _handler;
 {
     [NSException raise:NSInternalInconsistencyException format:@"Use designated initializer."];
     return [super init];
-}
-
-#pragma mark HSFNodeParseErrorHandler protocol
-
--(void)node:(HSFNode *)node didFailParsingWithError:(NSError *)error
-{
-    NSError *parseError = [[NSError alloc] initWithDomain:HSFParseErrorDomain code:1 userInfo:nil];
-    [self.connection cancel];
-    [self notifyDelegateFailLoadingWithError:parseError];
 }
 
 #pragma mark NSURLConnectionDataDelegate
@@ -219,9 +218,16 @@ static id <HSFCatcherHandler> _handler;
                 NSData *dataToParse = [stringToProcess dataUsingEncoding:NSUTF8StringEncoding];
                 
                 [self performParseOperation:^{
-                    HSFNode *root = [HSFNode nodeTreeFromData:dataToParse delegate:self];
+                    NSError *parseError;
+                    HSFNode *root = [HSFNode nodeTreeFromData:dataToParse error:&parseError];
                     ++self.unitProcessed;
-                    [self.delegate performSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR) withObject:self withObject:[root.children firstObject]];
+                    if (!parseError) {
+                        [self.delegate performSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR) withObject:self withObject:[root.children firstObject]];
+                    } else {
+                        [self.connection cancel];
+                        [self connection:self.connection didFailWithError:parseError];
+                        return;
+                    }
                 }];
                 
                 stringToProcess = @"";
@@ -236,15 +242,22 @@ static id <HSFCatcherHandler> _handler;
         [NSException raise:HSFServiceResponseException format:@"No data received while loading."];
     
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR)]){
-        HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData delegate:self];
+        NSError *parseError;
+        HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData error:&parseError];
         // root is pointer to tree root element
-        [self.delegate performSelector:@selector(CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR) withObject:self withObject:[root.children firstObject]];
+        if (!parseError) {
+            [self.delegate performSelector:@selector(CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR) withObject:self withObject:[root.children firstObject]];
+        } else {
+            [self.connection cancel];
+            [self connection:self.connection didFailWithError:parseError];
+            return;
+        }
     }
     
     // Perform this text only in DEBUG mode.
 #ifdef DEBUG
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] && [self.unitTags count] > 0){
-        HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData delegate:self];
+        HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData error:NULL];
         NSUInteger total = 0;
         for (NSString *tag in self.unitTags){
             total += [root countOfNodesByName:tag];
@@ -271,7 +284,7 @@ static id <HSFCatcherHandler> _handler;
         [userInfo addEntriesFromDictionary:error.userInfo];
         NSError *finalError = [NSError errorWithDomain:[error domain] code:[error code] userInfo:[userInfo copy]];
         if ([[[self class] networkErrorCodes] containsObject:[NSNumber numberWithInt:[error code]]]){
-            [self notifyDelegateFilaConnectionWithError:finalError];
+            [self notifyDelegateFailConnectionWithError:finalError];
         } else {
             [self notifyDelegateFailLoadingWithError:finalError];
         }
@@ -342,7 +355,6 @@ static id <HSFCatcherHandler> _handler;
     if ([self.delegate respondsToSelector:@selector(DID_FAIL_AUTH_SELECTOR)]){
         [self.delegate performSelector:@selector(DID_FAIL_AUTH_SELECTOR) withObject:self withObject:error];
     }
-    [self finishJobAndHotifyHandler];
 }
 
 -(void)notifyDelegateFailLoadingWithError:(NSError*)error
@@ -353,7 +365,7 @@ static id <HSFCatcherHandler> _handler;
     [self finishJobAndHotifyHandler];
 }
 
--(void)notifyDelegateFilaConnectionWithError:(NSError*)error
+-(void)notifyDelegateFailConnectionWithError:(NSError*)error
 {
     if([self.delegate respondsToSelector:@selector(DID_FAIL_CONNECTION_SELECTOR)]){
         [self.delegate performSelector:@selector(DID_FAIL_CONNECTION_SELECTOR) withObject:self withObject:error];

@@ -18,7 +18,7 @@
  @abstract HSF SOAP catcher.
  @discussion An instance of this class sends a SOAP message and handles response. It uses delegate pattern to dispatch received NSFNode tree structures in asynchronous mode. It also has interface for synchronous loading. Note: the moment you activated the async loading routine, the request is copied from HSFAction to fixedRequest and will be used subsequently. HSFCatcher performs all necessary network stuff.
  */
-@interface HSFCatcher : NSObject <NSURLConnectionDataDelegate,HSFNodeParseErrorHandler>
+@interface HSFCatcher : NSObject <NSURLConnectionDataDelegate>
 
 /*!
  @abstract Fixed NSURLRequest.

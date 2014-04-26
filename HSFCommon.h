@@ -7,6 +7,7 @@
 //
 
 #define HSF_ACTION_CLASS_NAME @"HSFAction"
+#define HSF_PARSE_ERROR_KEY @"parseError"
 
 #define ATTEMPTS_KEY @"attempts"
 #define POST_METHOD @"POST"

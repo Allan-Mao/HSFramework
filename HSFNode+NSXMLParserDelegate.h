@@ -18,10 +18,10 @@
  @abstract Parse data and return node tree.
  @discussion This task uses given data bag and returns node tree or throw exception if data is not valid XML document.
  @param data Data bag to parse.
- @param delegate Hadler to notify about parsing error.
+ @param error Out parameter used if an error occurs while parsing the data. May be NULL. Error domain will be HSFParseErrorDomain.
  @return Root node with name of ROOT_NODE_NAME macro. Note that this root node itself is not a part of a given XML data.
  */
-+(HSFNode*)nodeTreeFromData:(NSData*)data delegate:(id<HSFNodeParseErrorHandler>)delegate;
++(HSFNode*)nodeTreeFromData:(NSData*)data error:(NSError**)error;
 
 /*!
  @abstract Handle open tag.
@@ -46,17 +46,5 @@
  @discussion Throws an exception if parse error occurred and prints treeData.
  */
 -(void)parser:(NSXMLParser *)parser parseErrorOccurred:(NSError *)parseError;
-
-@end
-
-/*!
- @abstract Parsing error handler protocol.
- */
-@protocol HSFNodeParseErrorHandler <NSObject>
-
-/*!
- @abstract This notification will be sent to handler when parsing error will occur.
- */
--(void)node:(HSFNode*)node didFailParsingWithError:(NSError*)error;
 
 @end
