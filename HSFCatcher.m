@@ -24,7 +24,6 @@ static id <HSFCatcherHandler> _handler;
 @property (nonatomic,readwrite) BOOL isInLoading;
 @property (nonatomic,readwrite) NSUInteger unitRecognized;
 @property (nonatomic,readwrite) NSUInteger unitProcessed;
-@property (strong,nonatomic,readwrite) NSURLRequest *fixedRequest;
 @property (strong,nonatomic,readwrite) NSURLConnection *connection;
 
 @property (nonatomic) NSInteger unitInProgress;
@@ -34,9 +33,7 @@ static id <HSFCatcherHandler> _handler;
 @property (strong,nonatomic) NSString *fixedTag;
 @property (strong,nonatomic) NSMutableString *bufferString;
 
-@property (nonatomic) NSUInteger loadAttempts;
-@property (nonatomic) NSTimeInterval maxTimeout;
-@property (strong,nonatomic) NSURLCredential *credential;
+@property (strong,nonatomic,readwrite) HSFActionStamp *actionStamp;
 
 @end
 
@@ -61,12 +58,6 @@ static id <HSFCatcherHandler> _handler;
     return (self.unitInProgress) ? YES : NO;
 }
 
--(NSArray*)unitTags
-{
-    if(!_unitTags)_unitTags = @[];
-    return _unitTags;
-}
-
 -(NSMutableData*)cumulativeData
 {
     if (!_cumulativeData)_cumulativeData = [[NSMutableData alloc] init];
@@ -75,7 +66,7 @@ static id <HSFCatcherHandler> _handler;
 
 #pragma mark Public Methods
 
-//TODO: shift it to HSFClient
+//TODO: shift it to HSFCliene,rework, rethink, reconsider.
 +(HSFNode*)loadSynchronouslyWithAction:(HSFAction*)action response:(NSURLResponse **)response error:(NSError **)error;
 {
     NSData *data = [NSURLConnection sendSynchronousRequest:action.request returningResponse:response error:error];
@@ -91,25 +82,16 @@ static id <HSFCatcherHandler> _handler;
 
 -(void)loadAsynchronouslyWithAction:(HSFAction*)action
 {
-    if (!self.delegate || !action){
-        [NSException raise:NSInvalidArgumentException format:@"The delegate or action is not set."];
+    if (self.isInLoading){
+        [NSException raise:NSInvalidArgumentException format:@"Attempt to loadAsynchronously while catcher isInLoading."];
     }
-    // Fix request and copy required information from action.
+    
     self.isInLoading = YES;
-    self.fixedRequest = action.request;
-    self.credential = action.credential;
-    self.loadAttempts = action.loadAttempts;
-    self.maxTimeout = action.maxTimeout;
-    self.unitTags = [action.unitTags copy];
-    self.parseUnitsAsynchronously = action.parseUnitsAsynchronously;
-    self.connection = [[NSURLConnection alloc] initWithRequest:self.fixedRequest delegate:self];
-}
-
--(void)reloadAsynchronously
-{
-    if (!self.fixedRequest)
-        [NSException raise:NSInvalidArgumentException format:@"The fixedRequest is not set."];
-    self.connection = [[NSURLConnection alloc] initWithRequest:self.fixedRequest delegate:self];
+    
+    // Fix action in the actionStamp
+    self.actionStamp = [[HSFActionStamp alloc] initWithAction:action];
+    
+    [self startNetworkingProcess];
 }
 
 -(id)initWithDelegate:(id <HSFCatcherDelegate>)delegate
@@ -122,7 +104,6 @@ static id <HSFCatcherHandler> _handler;
     
     if (self){
         _delegate = delegate;
-        _parseUnitsAsynchronously = NO;
         _isInLoading = NO;
     }
     
@@ -155,7 +136,7 @@ static id <HSFCatcherHandler> _handler;
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR)])
         [self.cumulativeData appendData:data];
     
-    if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] && [self.unitTags count] > 0){
+    if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] && [self.actionStamp.unitTags count] > 0){
     
         NSString *stringToProcess;
         if (!self.bufferString) self.bufferString = [[NSMutableString alloc] init];
@@ -169,7 +150,7 @@ static id <HSFCatcherHandler> _handler;
             
             // Search if non of the tags is found.
             if ([self.fixedTag length] == 0){
-                for (NSString *tag in self.unitTags){
+                for (NSString *tag in self.actionStamp.unitTags){
                     NSString *openTag = [@"<" stringByAppendingString:tag];
                     range = [self.bufferString rangeOfString:openTag options:NSCaseInsensitiveSearch];
                     if (range.location != NSNotFound){
@@ -256,13 +237,13 @@ static id <HSFCatcherHandler> _handler;
     
     // Perform this text only in DEBUG mode.
 #ifdef DEBUG
-    if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] && [self.unitTags count] > 0){
+    if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] && [self.actionStamp.unitTags count] > 0){
         HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData error:NULL];
         NSUInteger total = 0;
-        for (NSString *tag in self.unitTags){
+        for (NSString *tag in self.actionStamp.unitTags){
             total += [root countOfNodesByName:tag];
         }
-        if (self.isParseUnitsAsynchronously) while (self.isParsing) {};
+        if (self.actionStamp.isParseUnitsAsynchronously) while (self.isParsing) {};
         if (self.unitProcessed != total){
             [NSException raise:HSFCatcherMissedElementException format:@"Number of elements counted from entire xml document mismatches with number of processed elements, unitProcessed = %d, total = %d",self.unitProcessed,total];
         }
@@ -273,11 +254,10 @@ static id <HSFCatcherHandler> _handler;
 
 -(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
-    self.connection = nil;
-    self.cumulativeData = nil;
     ++self.failAttemptsMade;
-    if ((self.loadAttempts > 1) && self.maxTimeout && self.timeout < self.maxTimeout) {
-        self.timeout += (double)self.maxTimeout/(self.loadAttempts-1);
+    if ((self.actionStamp.loadAttempts > 1) && self.actionStamp.maxTimeout && self.timeout < self.actionStamp.maxTimeout) {
+        self.timeout += (double)self.actionStamp.maxTimeout/(self.actionStamp.loadAttempts-1);
+        [self finishNetworkingProcess];
         [self performSelector:@selector(reloadAsynchronously) withObject:nil afterDelay:self.timeout];
     }  else {
         NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithDictionary:@{ATTEMPTS_KEY:[NSString stringWithFormat:@"%d",self.failAttemptsMade]}];
@@ -294,7 +274,7 @@ static id <HSFCatcherHandler> _handler;
 -(void)connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
 {
     if ([challenge previousFailureCount] == 0){
-        [[challenge sender] useCredential:self.credential forAuthenticationChallenge:challenge];
+        [[challenge sender] useCredential:self.actionStamp.credential forAuthenticationChallenge:challenge];
     } else {
         [[challenge sender] cancelAuthenticationChallenge:challenge];
         NSError *error = [NSError errorWithDomain:HSFAuthenticationErrorDomain code:403 userInfo:nil];
@@ -303,6 +283,15 @@ static id <HSFCatcherHandler> _handler;
 }
 
 #pragma mark Private Methods
+
+-(void)reloadAsynchronously
+{
+    if (!self.isInLoading){
+        [NSException raise:NSInvalidArgumentException format:@"Attempt to loadAsynchronously while catcher isInLoading = NO."];
+    }
+    
+    [self startNetworkingProcess];
+}
 
 +(NSArray*)networkErrorCodes
 {
@@ -375,14 +364,35 @@ static id <HSFCatcherHandler> _handler;
 
 -(void)finishJobAndHotifyHandler
 {
-    self.connection =nil;
     self.isInLoading = NO;
+    [self finishNetworkingProcess];
+}
+
+/*
+ Common point to start any network activity.
+ */
+-(void)startNetworkingProcess
+{
+    if (!self.delegate || !self.actionStamp.request){
+        [NSException raise:NSInvalidArgumentException format:@"The delegate or action is not set."];
+    }
+    
+    [[[self class] handler] catcherStarted:self];
+    self.connection = [[NSURLConnection alloc] initWithRequest:self.actionStamp.request delegate:self];
+}
+
+-(void)finishNetworkingProcess
+{
+    [self.connection cancel];
+    self.connection = nil;
+    self.cumulativeData = nil;
     [[[self class] handler] catcherFinished:self];
+    
 }
 
 -(void)performParseOperation:(void (^)())block
 {
-    if (self.isParseUnitsAsynchronously) {
+    if (self.actionStamp.isParseUnitsAsynchronously) {
         ++self.unitInProgress;
         dispatch_async(self.parseQueue, ^{
             block();

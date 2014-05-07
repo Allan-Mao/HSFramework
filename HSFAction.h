@@ -15,13 +15,18 @@
 @interface HSFAction : NSObject
 
 /*!
+ @abstract Determines whether HSF will count networking with this action as subject for network activity indicator.
+ */
+@property (nonatomic,readonly) BOOL networkActivityIndicator;
+
+/*!
  @abstract Timeout in seconds which will be used for NSURLRequest instance creation. By default 60 seconds.
  */
 @property (nonatomic,readonly) NSTimeInterval timeout;
 
 /*!
  @abstract Determine wether parse specialized units asynchronously.
- @discussion Will be copied to HSFCatcher's parseUnitsAsynchronously.
+ @discussion Default value is NO;
  */
 @property (nonatomic,getter=isParseUnitsAsynchronously) BOOL parseUnitsAsynchronously;
 

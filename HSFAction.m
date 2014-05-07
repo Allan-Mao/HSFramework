@@ -20,6 +20,11 @@
 
 #pragma mark Properties
 
+-(BOOL)networkActivityIndicator
+{
+    return YES;
+}
+
 -(NSTimeInterval)timeout
 {
     return DEFAULT_CONNECTION_TIMEOUT;
@@ -65,6 +70,17 @@
 -(NSString*)HTTPBody
 {
     return [[NSString alloc] initWithData:[self.request HTTPBody] encoding:NSUTF8StringEncoding];
+}
+
+-(BOOL)isParseUnitsAsynchronously
+{
+    return NO;
+}
+
+-(NSArray*)unitTags
+{
+    if (!_unitTags)_unitTags = @[];
+    return _unitTags;
 }
 
 /*

@@ -1,5 +1,5 @@
 /*!
 @framework Handmade SOAP Framework
 @abstract Simple SOAP Framework.
-@discussion The SOAP Framework encapsulates SOAP messages exchange between a client and a server. It provides base class HSFAction which should be subclassed to represent a specific action. And a class HSFClient with its minion HSFCather class.
+@discussion The SOAP Framework encapsulates SOAP messages exchange between a client and a server. It provides base class HSFAction which should be subclassed to represent a specific action. And a class HSFClient with its minion HSFCatcher class.
 */

@@ -10,6 +10,7 @@
 #import "HSFAction.h"
 #import "HSFNode.h"
 #import "HSFNode+NSXMLParserDelegate.h"
+#import "HSFActionStamp.h"
 
 @protocol HSFCatcherDelegate;
 @protocol HSFCatcherHandler;
@@ -21,10 +22,9 @@
 @interface HSFCatcher : NSObject <NSURLConnectionDataDelegate>
 
 /*!
- @abstract Fixed NSURLRequest.
- @discussion This request is fixed just before downloading happen. It fixed in order to protect the request for changing while downloading.
+ @abstract HSFAction data copy. To protect of later changes in HSFAction, which was used to initiate a load process.
  */
-@property (strong,nonatomic,readonly) NSURLRequest *fixedRequest;
+@property (strong,nonatomic,readonly) HSFActionStamp *actionStamp;
 
 /*!
  @abstract Determine wether a catcher is performing asynchronous parsing.
@@ -37,18 +37,6 @@
  @discussion This flag is set to YES just after async loading has been started, and set to NO after loading is finished or failed with error.
  */
 @property (nonatomic,readonly) BOOL isInLoading;
-
-/*!
- @abstract Determine wether parse specialized units asynchronously.
- @discussion YES if you need parse units asynchronously. Default value NO. Note if set this property to YES, then delegate callback methods will be sent NOT from the main thread but from PARSE_QUEUE thread. I.e in this case you need to dispatch async to the main queue in the body of your delegate methods of HSFCatcherDelegate.
- */
-@property (nonatomic,getter=isParseUnitsAsynchronously) BOOL parseUnitsAsynchronously;
-
-/*!
- @abstract Tags that represent units.
- @discussion As soon as catcher receive one of these tags it parses it an send to delegate.
- */
-@property (strong,nonatomic) NSArray* unitTags;
 
 /*!
  @abstract Unit recognized.
@@ -64,7 +52,7 @@
 
 /*!
  @abstract Connection object that loads content.
- @discussion This object is created by HSFCatcher, it is a readonly property. Using this API you can cancel downloading.
+ @discussion This object is created by HSFCatcher, it is a readonly property. Using this API you can cancel downloading. TODO: Here probably should not be this api to cancel connection, instead put method -cancelLoading with all required notification to handler/delegate.
  */
 @property (strong,nonatomic,readonly) NSURLConnection *connection;
 
@@ -95,7 +83,8 @@
  @abstract Repeat loading.
  @discussion Cather repeats asynchronous loading with the request it used at last load.
  */
--(void)reloadAsynchronously;
+//-(void)reloadAsynchronously;
+//TODO: we temporarily turn of this API. This method should be separate as it must require that catcher isInLoading = NO. Make a new method -(void)reload;
 
 /*!
  @abstract Designated initializer.
@@ -162,9 +151,14 @@
 
 /*!
  @abstract HSFCatcherHandler protocol.
- @discussion The object conforming this protocol and set as handler for HSFCatcher class will receive notification when a catcher finished loading job.
+ @discussion The object conforming this protocol and set as handler for HSFCatcher class will receive notification when a catcher finished or started loading job.
  */
 @protocol HSFCatcherHandler <NSObject>
+
+/*!
+ @abstract Notification of catcher that has started its job.
+ */
+-(void)catcherStarted:(HSFCatcher*)catcher;
 
 /*!
  @abstract Notification of catcher that has finished its job.
@@ -214,7 +208,7 @@
 
 /*!
  @abstract Handle network connection error.
- @discussion This callback is called if some porblems occured with internet connection. Error from
+ @discussion This callback is called if some problems occurred with internet connection. Error from
  @param catcher HSFCatcher which handled a connection.
  @param error An error object containing details of the fail.
  */

@@ -10,11 +10,23 @@
 #import "HSFAction.h"
 #import "HSFCatcher.h"
 
+@protocol HSFClientDelegate;
+
 /*!
  @abstract Handmade SOAP Framework client singleton.
  @discussion A shared instance of this class initiate all network activity of HSFramework. It is a composite aggregation (UML not pattern) for HSFCatchers objects which responsible for receiving and handling raw information for a web service. This is also could be considered as a facade for whole HSFramework.
  */
 @interface HSFClient : NSObject <HSFCatcherHandler>
+
+/*!
+ @abstract HSFClient delegate (weak pointer).
+ */
+@property (weak,nonatomic) id <HSFClientDelegate> delegate;
+
+/*!
+ @abstract Count of active HSFCatcher instances.
+ */
+@property (nonatomic,readonly) NSUInteger count;
 
 /*!
  @abstract Perform SOAP action on a server, and handle response asynchronously.
@@ -40,5 +52,23 @@
  @abstract Shared instance of this singleton class.
  */
 +(id)sharedHSFClient;
+
+@end
+
+/*!
+ @abstract HSFClient delegate.
+ @discussion HSFClient will notify client about networking.
+ */
+@protocol HSFClientDelegate <NSObject>
+
+/*!
+ @abstract Send when network activity indicating should begin.
+ */
+-(void)didStartNetworkIndicating;
+
+/*!
+ @abstract Send when network activity indicating should stop.
+ */
+-(void)didStopNetworkIndicating;
 
 @end
