@@ -219,8 +219,8 @@ static id <HSFCatcherHandler> _handler;
 
 -(void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    if ([self.cumulativeData length] == 0)
-        [NSException raise:HSFServiceResponseException format:@"No data received while loading."];
+//    if ([self.cumulativeData length] == 0)
+//        [NSException raise:HSFServiceResponseException format:@"No data received while loading."];
     
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR)]){
         NSError *parseError;
