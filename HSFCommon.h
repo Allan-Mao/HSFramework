@@ -18,6 +18,7 @@
 #define DID_FAIL_LOADING_SELECTOR catcher:didFailLoadingWithError:
 #define DID_FAIL_CONNECTION_SELECTOR catcher:didFailConnectionWithError:
 #define DID_FAIL_AUTH_SELECTOR catcher:didFailAuthenticationWithError:
+#define DID_FAIL_COMMON_SELECTOR catcher:didFailWithCommonError:
 #define CLIENT_DID_RECEIVE_UNIT_SELECTOR catcher:didReceiveUnit:
 #define CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR catcher:didReceiveEntireResponse:
 

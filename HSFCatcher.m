@@ -344,22 +344,33 @@ static id <HSFCatcherHandler> _handler;
     if ([self.delegate respondsToSelector:@selector(DID_FAIL_AUTH_SELECTOR)]){
         [self.delegate performSelector:@selector(DID_FAIL_AUTH_SELECTOR) withObject:self withObject:error];
     }
+    // This callback will cause two notification probably, as auth error will be sent as genrail didReceiveError.
+    //[self notifyDelegateCommonFailWithError:error];
 }
 
 -(void)notifyDelegateFailLoadingWithError:(NSError*)error
 {
-    if([self.delegate respondsToSelector:@selector(DID_FAIL_LOADING_SELECTOR)]){
+    if ([self.delegate respondsToSelector:@selector(DID_FAIL_LOADING_SELECTOR)]){
         [self.delegate performSelector:@selector(DID_FAIL_LOADING_SELECTOR) withObject:self withObject:error];
     }
+    [self notifyDelegateCommonFailWithError:error];
     [self finishJobAndHotifyHandler];
 }
 
 -(void)notifyDelegateFailConnectionWithError:(NSError*)error
 {
-    if([self.delegate respondsToSelector:@selector(DID_FAIL_CONNECTION_SELECTOR)]){
+    if ([self.delegate respondsToSelector:@selector(DID_FAIL_CONNECTION_SELECTOR)]){
         [self.delegate performSelector:@selector(DID_FAIL_CONNECTION_SELECTOR) withObject:self withObject:error];
     }
+    [self notifyDelegateCommonFailWithError:error];
     [self finishJobAndHotifyHandler];
+}
+
+-(void)notifyDelegateCommonFailWithError:(NSError*)error
+{
+    if ([self.delegate respondsToSelector:@selector(DID_FAIL_COMMON_SELECTOR)]){
+        [self.delegate performSelector:@selector(DID_FAIL_COMMON_SELECTOR) withObject:self withObject:error];
+    }
 }
 
 -(void)finishJobAndHotifyHandler

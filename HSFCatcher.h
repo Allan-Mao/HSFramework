@@ -214,4 +214,12 @@
  */
 -(void)catcher:(HSFCatcher*)catcher didFailConnectionWithError:(NSError*)error;
 
+/*!
+ @abstract Handle of common error
+ @discussion This callback is called if any problems occured while catcher working.
+ @param catcher HSFCatcher which handled a connection.
+ @param error An error object containing details of the fail.
+ */
+-(void)catcher:(HSFCatcher *)catcher didFailWithCommonError:(NSError*)error;
+
 @end
