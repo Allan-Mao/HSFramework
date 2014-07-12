@@ -289,7 +289,7 @@ static id <HSFCatcherHandler> _handler;
     
     // Perform this text only in DEBUG mode.
 #ifdef DEBUG
-    if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] && [self.actionStamp.unitTags count] > 0){
+    if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] && [self.actionStamp.unitTags count] > 0 && [self.cumulativeData length] > 0){
         HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData error:NULL];
         NSUInteger total = 0;
         for (NSString *tag in self.actionStamp.unitTags){
