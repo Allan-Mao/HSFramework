@@ -69,6 +69,11 @@ static id <HSFCatcherHandler> _handler;
 
 #pragma mark Public Methods
 
+-(void)cancel
+{
+    [self finishJobAndHotifyHandler];
+}
+
 //TODO: shift it to HSFCliene,rework, rethink, reconsider.
 +(HSFNode*)loadSynchronouslyWithAction:(HSFAction*)action response:(NSURLResponse **)response error:(NSError **)error;
 {

@@ -65,6 +65,11 @@
 #pragma mark Tasks
 
 /*!
+ @abstract Cancel download job.
+ */
+-(void)cancel;
+
+/*!
  @abstract Load data from server synchronously.
  @discussion This method sends a request to a server (based on given HSFAction) and returns a result in the form of HSFNode tree. Note: this is class method that's why no authentication challenge callback.
  @param response Out parameter for the URL response returned by the server.
