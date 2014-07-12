@@ -129,6 +129,8 @@ static id <HSFCatcherHandler> _handler;
     self.unitProcessed = 0;
     self.timeout = 0.0;
     self.failAttemptsMade = 0;
+    if ([self.delegate respondsToSelector:@selector(CATCHER_DID_RECEIVE_RESPONSE_SELECTOR)])
+        [self.delegate performSelector:@selector(CATCHER_DID_RECEIVE_RESPONSE_SELECTOR) withObject:self withObject:response];
 }
 
 -(void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data

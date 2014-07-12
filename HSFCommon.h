@@ -22,6 +22,7 @@
 #define CLIENT_DID_RECEIVE_UNIT_SELECTOR catcher:didReceiveUnit:
 #define CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR catcher:didReceiveEntireResponse:
 #define CATCHER_DID_RECEIVE_CONTENT_SELECTOR catcher:didReceiveContent:forTag:lastChunk:
+#define CATCHER_DID_RECEIVE_RESPONSE_SELECTOR catcher:didReceiveResponse:
 
 #define PARSE_QUEUE "Parse queue"
 #define ROOT_NODE_NAME @"root"

@@ -180,6 +180,14 @@
  @param catcher HSFCatcher which handled connection.
  @param rootNode Root node corresponding to newly available XML tree structure of unit.
  */
+-(void)catcher:(HSFCatcher*)catcher didReceiveResponse:(NSURLResponse*)response;
+
+/*!
+ @abstract Handle received specialized unit.
+ @discussion Specialized units are XML structures denoting units.
+ @param catcher HSFCatcher which handled connection.
+ @param rootNode Root node corresponding to newly available XML tree structure of unit.
+ */
 -(void)catcher:(HSFCatcher*)catcher didReceiveUnit:(HSFNode*)rootNode;
 
 /*!
