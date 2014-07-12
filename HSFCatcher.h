@@ -65,7 +65,7 @@
 #pragma mark Tasks
 
 /*!
- @abstract Cancel download job.
+ @abstract Cancel downloading job for cathcer and notify HSFClient.
  */
 -(void)cancel;
 
@@ -243,5 +243,11 @@
  @param error An error object containing details of the fail.
  */
 -(void)catcher:(HSFCatcher *)catcher didFailWithCommonError:(NSError*)error;
+
+/*!
+ @abstract Finish notification.
+ @param catcher HSFCatcher which finished loading.
+ */
+-(void)catcherDidFinishLoading:(HSFCatcher *)catcher;
 
 @end

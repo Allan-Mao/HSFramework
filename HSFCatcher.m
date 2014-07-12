@@ -147,6 +147,12 @@ static id <HSFCatcherHandler> _handler;
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR)])
         [self.cumulativeData appendData:data];
     
+    if ([self.actionStamp.unitTags count] > 0 && ![self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)])
+        [NSException raise:HSFCatcherSpecialTagsException format:@"HSFCatcher unit tags are defined, but delegate does not responds for the selector."];
+    
+    if ([self.actionStamp.streamingTags count] > 0 && ![self.delegate respondsToSelector:@selector(CATCHER_DID_RECEIVE_CONTENT_SELECTOR)])
+        [NSException raise:HSFCatcherSpecialTagsException format:@"HSFCatcher streming tags are defined, but delegate does not responds for the selector."];
+    
     
     //Order matter!
     NSArray *specialTags;
@@ -160,7 +166,7 @@ static id <HSFCatcherHandler> _handler;
         specialTags = [self.actionStamp.streamingTags arrayByAddingObjectsFromArray:arr];
     }
     
-    if (([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] || [self.delegate respondsToSelector:@selector(CATCHER_DID_RECEIVE_CONTENT_SELECTOR)]) && [specialTags count] > 0){
+    if ([specialTags count] > 0){
     
         NSString *stringToProcess;
         
@@ -296,6 +302,9 @@ static id <HSFCatcherHandler> _handler;
     }
 #endif
     [self finishJobAndHotifyHandler];
+    
+    if ([self.delegate respondsToSelector:@selector(CATCHER_DID_FINISH_LOADING_SELECTOR)])
+        [self.delegate performSelector:@selector(CATCHER_DID_FINISH_LOADING_SELECTOR) withObject:self];
 }
 
 -(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
