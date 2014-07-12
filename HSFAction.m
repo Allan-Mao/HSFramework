@@ -83,6 +83,18 @@
     return _unitTags;
 }
 
+-(NSArray*)streamingTags
+{
+    if (!_streamingTags)_streamingTags = @[];
+    return _streamingTags;
+}
+
+-(NSArray*)orderedSpecialTags
+{
+    if (!_orderedSpecialTags)_orderedSpecialTags = @[];
+    return _orderedSpecialTags;
+}
+
 /*
  You had better not rely on this property in method implementations, use _request instead.
  */

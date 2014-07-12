@@ -183,6 +183,15 @@
 -(void)catcher:(HSFCatcher*)catcher didReceiveUnit:(HSFNode*)rootNode;
 
 /*!
+ @abstract Handle received raw data for specified XML tag.
+ @param catcher HSFCatcher which handled connection.
+ @param data NSData object received for tag, in bytes.
+ @param tag NSString XML tag for which data was received.
+ @param lastChunk Indicates that receiving chunk of data is a last one.
+ */
+-(void)catcher:(HSFCatcher *)catcher didReceiveContent:(NSString*)content forTag:(NSString*)tag lastChunk:(BOOL)lastChunk;
+
+/*!
  @abstract Handle entire response asynchronously.
  @discussion This task handles an entire XML tree received from server.
  @param catcher HSFCatcher which handled a connection.
@@ -216,7 +225,7 @@
 
 /*!
  @abstract Handle of common error
- @discussion This callback is called if any problems occured while catcher working.
+ @discussion This callback is called if any problems occurred while catcher working.
  @param catcher HSFCatcher which handled a connection.
  @param error An error object containing details of the fail.
  */

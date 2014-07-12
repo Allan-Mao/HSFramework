@@ -17,6 +17,8 @@
 @property (nonatomic,readwrite) NSTimeInterval maxTimeout;
 @property (nonatomic,readwrite) BOOL networkActivityIndicator;
 @property (strong,nonatomic,readwrite) NSArray* unitTags;
+@property (strong,nonatomic,readwrite) NSArray* streamingTags;
+@property (strong,nonatomic,readwrite) NSArray *orderedSpecialTags;
 @property (nonatomic,getter=isParseUnitsAsynchronously,readwrite) BOOL parseUnitsAsynchronously;
 
 @property (nonatomic,readwrite) Class actionClass;
@@ -38,6 +40,8 @@
         self.networkActivityIndicator = action.networkActivityIndicator;
         self.unitTags = action.unitTags;
         self.parseUnitsAsynchronously = action.isParseUnitsAsynchronously;
+        self.streamingTags = action.streamingTags;
+        self.orderedSpecialTags = action.orderedSpecialTags;
     }
     return self;
 }

@@ -22,7 +22,9 @@
 @property (nonatomic,readonly) NSUInteger loadAttempts;
 @property (nonatomic,readonly) NSTimeInterval maxTimeout;
 @property (nonatomic,readonly) BOOL networkActivityIndicator;
-@property (strong,nonatomic,readonly) NSArray* unitTags;
+@property (strong,nonatomic,readonly) NSArray *unitTags;
+@property (strong,nonatomic,readonly) NSArray *streamingTags;
+@property (strong,nonatomic,readonly) NSArray *orderedSpecialTags;
 @property (nonatomic,getter=isParseUnitsAsynchronously,readonly) BOOL parseUnitsAsynchronously;
 
 /*!

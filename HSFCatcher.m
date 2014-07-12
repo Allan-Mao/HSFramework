@@ -30,8 +30,11 @@ static id <HSFCatcherHandler> _handler;
 @property (strong,nonatomic) dispatch_queue_t parseQueue;
 @property (nonatomic) NSTimeInterval timeout;
 @property (nonatomic) NSUInteger failAttemptsMade;
+
 @property (strong,nonatomic) NSString *fixedTag;
+@property (strong,nonatomic) NSString *openTag;
 @property (strong,nonatomic) NSMutableString *bufferString;
+@property (strong,nonatomic) NSString *closedTag;
 
 @property (strong,nonatomic,readwrite) HSFActionStamp *actionStamp;
 
@@ -131,15 +134,32 @@ static id <HSFCatcherHandler> _handler;
 -(void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
     if ([data length] == 0)
+        //TODO: Get rid of this exception.
         [NSException raise:HSFServiceResponseException format:@"Server should not return empty data in SOAP exchange."];
     
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR)])
         [self.cumulativeData appendData:data];
     
-    if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] && [self.actionStamp.unitTags count] > 0){
+    
+    //Order matter!
+    NSArray *specialTags;
+    if ([self.actionStamp.orderedSpecialTags count]){
+        if ([self.actionStamp.orderedSpecialTags count] != [self.actionStamp.unitTags count] + [self.actionStamp.streamingTags count])
+            [NSException raise:HSFCatcherSpecialTagsException format:@"HSFCatcher orderedSpecialTags number is not equal to unitTag and streamingTags number."];
+        specialTags = [self.actionStamp.orderedSpecialTags mutableCopy];
+    } else {
+        NSMutableArray *arr = [[NSMutableArray alloc] initWithArray:self.actionStamp.unitTags];
+        [arr removeObjectsInArray:self.actionStamp.streamingTags];
+        specialTags = [self.actionStamp.streamingTags arrayByAddingObjectsFromArray:arr];
+    }
+    
+    if (([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] || [self.delegate respondsToSelector:@selector(CATCHER_DID_RECEIVE_CONTENT_SELECTOR)]) && [specialTags count] > 0){
     
         NSString *stringToProcess;
-        if (!self.bufferString) self.bufferString = [[NSMutableString alloc] init];
+        
+        if (!self.bufferString){
+            self.bufferString = [[NSMutableString alloc] init];
+        }
         [self.bufferString appendString:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
         
         NSRange range;
@@ -150,52 +170,69 @@ static id <HSFCatcherHandler> _handler;
             
             // Search if non of the tags is found.
             if ([self.fixedTag length] == 0){
-                for (NSString *tag in self.actionStamp.unitTags){
-                    NSString *openTag = [@"<" stringByAppendingString:tag];
-                    range = [self.bufferString rangeOfString:openTag options:NSCaseInsensitiveSearch];
+                for (NSString *tag in specialTags){
+                    NSString *openTag_pattern = [NSString stringWithFormat:@"<%@(( [^>]*>)|>)",tag];
+                    range = [self.bufferString rangeOfString:openTag_pattern options:NSRegularExpressionSearch|NSCaseInsensitiveSearch];
                     if (range.location != NSNotFound){
-                        //Cutting buffer
-                        [self.bufferString deleteCharactersInRange:NSMakeRange(0, range.location)];
                         self.fixedTag = tag;
+                        self.openTag = [self.bufferString substringWithRange:range];
+                        //Cutting buffer
+                        [self.bufferString deleteCharactersInRange:NSMakeRange(0, range.location+range.length)];
+                        range = [self.openTag rangeOfString:@"/>"];
+                        if (range.location != NSNotFound){
+                            self.closedTag = self.openTag;
+                            stringToProcess = @"";
+                        }
                         break;
                     }
                 }
             }
             
-            // Check for standalone <tag/>
-            if ([self.fixedTag length]>0 && [stringToProcess length] == 0){
-                // range.location of substring which is not found is NSNotFound = NSIntegerMax.
-                range = [self.bufferString rangeOfString:@"/>"];
-                if (range.location != NSNotFound && range.location < [self.bufferString rangeOfString:@"<" options:NSLiteralSearch range:NSMakeRange(range.length, [self.bufferString length]-range.length)].location){
-                    stringToProcess = [self.bufferString substringToIndex:(range.location+range.length)];
-                    //Cutting Buffer
-                    [self.bufferString setString:[self.bufferString substringFromIndex:(range.location+range.length)]];
-                    self.fixedTag = nil;
+            // Free buffer string if data is not broken in the middle of the tag e.g. "djkaafsdf<AudioDa.."
+            if ([self.fixedTag length] == 0){
+                isNeedNewData = YES;
+                if (![self isTagBreakingString:self.bufferString]){
+                    self.bufferString = nil;
+                    break;
                 }
             }
             
-            
-            // Combining data for specified tag
-            if ([self.fixedTag length]){
-                NSString *closedTag = [NSString stringWithFormat:@"</%@>", self.fixedTag];
-                range = [self.bufferString rangeOfString:closedTag options:NSCaseInsensitiveSearch];
+            if ([self.fixedTag length] && ![self.closedTag length]){
+                NSString *closedTag_template = [NSString stringWithFormat:@"</%@>", self.fixedTag];
+                range = [self.bufferString rangeOfString:closedTag_template options:NSCaseInsensitiveSearch];
                 if (range.location != NSNotFound){
-                    stringToProcess = [self.bufferString substringToIndex:(range.location+range.length)];
-                    // Cut new string
+                    self.closedTag = [self.bufferString substringWithRange:range];
+                    stringToProcess = [self.bufferString substringToIndex:range.location];
                     [self.bufferString setString:[self.bufferString substringFromIndex:(range.location+range.length)]];
-                    self.fixedTag = nil;
                 } else {
-                    // Closed Tag is not found
-                    //New Load
                     isNeedNewData = YES;
                 }
-            } else if (![stringToProcess length]){
-                //New Load
-                isNeedNewData = YES;
             }
             
-            if (![self.fixedTag length] && [stringToProcess length]){
+            if ([self.closedTag length] && ![self.openTag length]){
+                [NSException raise:HSFCatcherSpecialTagsException format:@"HSFCatcher openTag is empty while closed is set"];
+            }
+            
+            if ([self.openTag length] && [self.actionStamp.streamingTags containsObject:self.fixedTag] && [self.delegate respondsToSelector:@selector(CATCHER_DID_RECEIVE_CONTENT_SELECTOR)]){
+                if ([self.closedTag length]){
+                    [self.delegate catcher:self didReceiveContent:stringToProcess forTag:self.fixedTag lastChunk:YES];
+                    stringToProcess = nil;
+                    self.openTag = nil;
+                    self.closedTag = nil;
+                    self.fixedTag = nil;
+                } else if (![self isTagBreakingString:self.bufferString]){
+                    [self.delegate catcher:self didReceiveContent:self.bufferString forTag:self.fixedTag lastChunk:NO];
+                    self.bufferString = nil;
+                }
+            }
+            
+            if ([self.closedTag length] && [self.actionStamp.unitTags containsObject:self.fixedTag] && [self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)]){
                 ++self.unitRecognized;
+                if ([stringToProcess length]){
+                    stringToProcess = [NSString stringWithFormat:@"%@%@%@",self.openTag,stringToProcess,self.closedTag];
+                } else {
+                    stringToProcess = self.closedTag;
+                }
                 NSData *dataToParse = [stringToProcess dataUsingEncoding:NSUTF8StringEncoding];
                 
                 [self performParseOperation:^{
@@ -210,8 +247,10 @@ static id <HSFCatcherHandler> _handler;
                         return;
                     }
                 }];
-                
-                stringToProcess = @"";
+                self.openTag = nil;
+                self.closedTag = nil;
+                self.fixedTag = nil;
+                stringToProcess = nil;
             }
         }
     }
@@ -412,6 +451,20 @@ static id <HSFCatcherHandler> _handler;
     } else {
         block();
     }
+}
+
+-(BOOL)isTagBreakingString:(NSString*)string
+{
+    NSRange lessThanSignRange = [self.bufferString rangeOfString:@"<" options:NSBackwardsSearch];
+    if (lessThanSignRange.location == NSNotFound){
+        return NO;
+    } else {
+        NSRange greatThanSignRange = [self.bufferString rangeOfString:@">" options:NSBackwardsSearch];
+        if (greatThanSignRange.location != NSNotFound && greatThanSignRange.location > lessThanSignRange.location){
+            return NO;
+        }
+    }
+    return YES;
 }
 
 #pragma mark Class Methods

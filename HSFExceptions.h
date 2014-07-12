@@ -45,6 +45,12 @@
 #define HSFCatcherMissedElementException @"HSFCatcherMissedElementException"
 
 /*!
+ @abstract HSFCatcher special tags inconsistency.
+ @discussion The exception could be raised when HSFCatcher is dealing with unit or streaming tags.
+ */
+#define HSFCatcherSpecialTagsException @"HSFCatcherSpecialTagsException"
+
+/*!
  @abstract NSFNode child is nil.
  @discussion The exception is raised when nil added as a child to NSFNode. This is needed for additional error detection in parsing.
  */

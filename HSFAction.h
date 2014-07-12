@@ -32,9 +32,23 @@
 
 /*!
  @abstract Tags that represent units.
- @discussion Will be copied to HSFCatcher's unitTags.
+ @discussion Will be copied to HSFActionStamp's unitTags.
  */
-@property (strong,nonatomic) NSArray* unitTags;
+@property (strong,nonatomic) NSArray *unitTags;
+
+//TODO: with new version these tags must not be writable here.
+
+/*!
+ @abstract Tags that represent streaming data.
+ @discussion Will be copied to HSFActionStamp's stramingTags.
+ */
+@property (strong,nonatomic) NSArray *streamingTags;
+
+/*!
+ @abstract Tags for special treatment while loading.
+ @discussion Will be copied to HSFActionStamp's stramingTags.
+ */
+@property (strong,nonatomic) NSArray *orderedSpecialTags;
 
 /*!
  @abstract Automatic reload attempts if some connection errors appeared.
