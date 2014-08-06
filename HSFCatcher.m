@@ -315,10 +315,10 @@ static id <HSFCatcherHandler> _handler;
         [self finishNetworkingProcess];
         [self performSelector:@selector(reloadAsynchronously) withObject:nil afterDelay:self.timeout];
     }  else {
-        NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithDictionary:@{ATTEMPTS_KEY:[NSString stringWithFormat:@"%d",self.failAttemptsMade]}];
+        NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithDictionary:@{ATTEMPTS_KEY:[NSString stringWithFormat:@"%lu",(unsigned long)self.failAttemptsMade]}];
         [userInfo addEntriesFromDictionary:error.userInfo];
         NSError *finalError = [NSError errorWithDomain:[error domain] code:[error code] userInfo:[userInfo copy]];
-        if ([[[self class] networkErrorCodes] containsObject:[NSNumber numberWithInt:[error code]]]){
+        if ([[[self class] networkErrorCodes] containsObject:[NSNumber numberWithInteger:[error code]]]){
             [self notifyDelegateFailConnectionWithError:finalError];
         } else {
             [self notifyDelegateFailLoadingWithError:finalError];

@@ -216,7 +216,7 @@
 {
     NSMutableDictionary *fields = [NSMutableDictionary dictionaryWithDictionary:self.HTTPHeaderFields];
     if (self.HTTPHeaderFields[CONTENT_LENGTH]){
-        fields[CONTENT_LENGTH] = [NSString stringWithFormat:@"%d",[[_request HTTPBody] length]];
+        fields[CONTENT_LENGTH] = [NSString stringWithFormat:@"%lu",(unsigned long)[[_request HTTPBody] length]];
     }
     [_request setAllHTTPHeaderFields:[fields copy]];
 }
