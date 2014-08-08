@@ -179,6 +179,15 @@
 @protocol HSFCatcherDelegate <NSObject>
 
 @optional
+
+/*!
+ @abstract Downloading progress notification.
+ @discussion Notifies a delegate about downloading progress.
+ @param catcher HSFCatcher which handled connection.
+ @param progress Progress of downloading.
+ */
+-(void)catcher:(HSFCatcher*)catcher didProgress:(float)progress;
+
 /*!
  @abstract Handle received specialized unit.
  @discussion Specialized units are XML structures denoting units.

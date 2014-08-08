@@ -21,6 +21,7 @@
 #define DID_FAIL_COMMON_SELECTOR catcher:didFailWithCommonError:
 #define CLIENT_DID_RECEIVE_UNIT_SELECTOR catcher:didReceiveUnit:
 #define CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR catcher:didReceiveEntireResponse:
+#define CLIENT_DID_PROGRESS catcher:didProgress:
 #define CATCHER_DID_RECEIVE_CONTENT_SELECTOR catcher:didReceiveContent:forTag:lastChunk:
 #define CATCHER_DID_RECEIVE_RESPONSE_SELECTOR catcher:didReceiveResponse:
 #define CATCHER_DID_FINISH_LOADING_SELECTOR catcherDidFinishLoading:

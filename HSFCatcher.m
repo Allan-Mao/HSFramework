@@ -11,6 +11,8 @@
 #import "HSFCommon.h"
 #import "HSFExceptions.h"
 
+#define FLOAT_COMPARISON_FIX 0.00001
+
 static id <HSFCatcherHandler> _handler;
 
 @interface HSFCatcher()
@@ -37,6 +39,9 @@ static id <HSFCatcherHandler> _handler;
 @property (strong,nonatomic) NSString *closedTag;
 
 @property (strong,nonatomic,readwrite) HSFActionStamp *actionStamp;
+
+@property (nonatomic) long long expectedLength;
+@property (nonatomic) long long loadedLength;
 
 @end
 
@@ -128,6 +133,8 @@ static id <HSFCatcherHandler> _handler;
 
 -(void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
+    self.expectedLength = [response expectedContentLength];
+    self.loadedLength = 0;
     [self.cumulativeData setLength:0];
     self.unitInProgress = 0;
     self.unitRecognized = 0;
@@ -140,6 +147,13 @@ static id <HSFCatcherHandler> _handler;
 
 -(void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
+    self.loadedLength += [data length];
+    if ([self.delegate respondsToSelector:@selector(CLIENT_DID_PROGRESS)]){
+        float progress = (float)self.loadedLength / self.expectedLength;
+        if (progress <= (1.0 - FLOAT_COMPARISON_FIX))
+            [self.delegate catcher:self didProgress:progress];
+    }
+    
     if ([data length] == 0)
         //TODO: Get rid of this exception.
         [NSException raise:HSFServiceResponseException format:@"Server should not return empty data in SOAP exchange."];
@@ -449,6 +463,9 @@ static id <HSFCatcherHandler> _handler;
 
 -(void)finishNetworkingProcess
 {
+    if ([self.delegate respondsToSelector:@selector(CLIENT_DID_PROGRESS)]){
+        [self.delegate catcher:self didProgress:1.0];
+    }
     [self.connection cancel];
     self.connection = nil;
     self.cumulativeData = nil;
