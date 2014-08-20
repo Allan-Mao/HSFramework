@@ -285,6 +285,15 @@ static id <HSFCatcherHandler> _handler;
 //    if ([self.cumulativeData length] == 0)
 //        [NSException raise:HSFServiceResponseException format:@"No data received while loading."];
     
+    if (self.openTag != nil && self.closedTag == nil){
+        NSDictionary *userInfo = @{NSLocalizedDescriptionKey:HSF_ERROR_MESSAGE_XML_PARSE_ERROR};
+        NSError *error = [NSError errorWithDomain:HSFParseErrorDomain
+                                             code:HSF_ERROR_CODE_XML_PARSE_ERROR
+                                         userInfo:userInfo];
+        [self connection:connection didFailWithError:error];
+        return;
+    }
+    
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_ENTIRE_RESPONSE_SELECTOR)]){
         NSError *parseError;
         HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData error:&parseError];
@@ -320,6 +329,9 @@ static id <HSFCatcherHandler> _handler;
 
 -(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
+#ifdef DEBUG
+    NSLog(@"%@| connection:didFailWithError:%@",[self class],error);
+#endif
     ++self.failAttemptsMade;
     if ((self.actionStamp.loadAttempts > 1) && self.actionStamp.maxTimeout && self.timeout < self.actionStamp.maxTimeout) {
         self.timeout += (double)self.actionStamp.maxTimeout/(self.actionStamp.loadAttempts-1);

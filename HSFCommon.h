@@ -42,3 +42,6 @@
  @discussion Error occurred during parsing process.
  */
 #define HSFParseErrorDomain @"HSFParseErrorDomain"
+
+#define HSF_ERROR_CODE_XML_PARSE_ERROR 1
+#define HSF_ERROR_MESSAGE_XML_PARSE_ERROR @"XML parsing error occcured."
