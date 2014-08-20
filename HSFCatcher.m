@@ -11,8 +11,6 @@
 #import "HSFCommon.h"
 #import "HSFExceptions.h"
 
-#define FLOAT_COMPARISON_FIX 0.00001
-
 static id <HSFCatcherHandler> _handler;
 
 @interface HSFCatcher()
@@ -79,7 +77,7 @@ static id <HSFCatcherHandler> _handler;
     [self finishJobAndHotifyHandler];
 }
 
-//TODO: shift it to HSFCliene,rework, rethink, reconsider.
+//TODO: shift it to HSFClient, rework, rethink, reconsider.
 +(HSFNode*)loadSynchronouslyWithAction:(HSFAction*)action response:(NSURLResponse **)response error:(NSError **)error;
 {
     NSData *data = [NSURLConnection sendSynchronousRequest:action.request returningResponse:response error:error];
@@ -150,8 +148,7 @@ static id <HSFCatcherHandler> _handler;
     self.loadedLength += [data length];
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_PROGRESS)]){
         float progress = (float)self.loadedLength / self.expectedLength;
-        if (progress <= (1.0 - FLOAT_COMPARISON_FIX))
-            [self.delegate catcher:self didProgress:progress];
+        [self.delegate catcher:self didProgress:(progress < 1.0) ? progress : 1.0];
     }
     
     if ([data length] == 0)
@@ -311,7 +308,7 @@ static id <HSFCatcherHandler> _handler;
         }
         if (self.actionStamp.isParseUnitsAsynchronously) while (self.isParsing) {};
         if (self.unitProcessed != total){
-            [NSException raise:HSFCatcherMissedElementException format:@"Number of elements counted from entire xml document mismatches with number of processed elements, unitProcessed = %d, total = %d",self.unitProcessed,total];
+            [NSException raise:HSFCatcherMissedElementException format:@"Number of elements counted from entire xml document mismatches with number of processed elements, unitProcessed = %lu, total = %lu",(unsigned long)self.unitProcessed,(unsigned long)total];
         }
     }
 #endif
@@ -464,7 +461,8 @@ static id <HSFCatcherHandler> _handler;
 -(void)finishNetworkingProcess
 {
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_PROGRESS)]){
-        [self.delegate catcher:self didProgress:1.0];
+        // 0.0 means loding is finished.
+        [self.delegate catcher:self didProgress:0.0];
     }
     [self.connection cancel];
     self.connection = nil;

@@ -89,7 +89,7 @@
  @discussion Cather repeats asynchronous loading with the request it used at last load.
  */
 //-(void)reloadAsynchronously;
-//TODO: we temporarily turn of this API. This method should be separate as it must require that catcher isInLoading = NO. Make a new method -(void)reload;
+//TODO: we temporarily turn off this API. This method should be separate as it must require that catcher isInLoading = NO. Make a new method -(void)reload;
 
 /*!
  @abstract Designated initializer.
@@ -182,7 +182,7 @@
 
 /*!
  @abstract Downloading progress notification.
- @discussion Notifies a delegate about downloading progress.
+ @discussion Notifies a delegate about downloading progress. Note progress = 0.0 means loading is finished.
  @param catcher HSFCatcher which handled connection.
  @param progress Progress of downloading.
  */
