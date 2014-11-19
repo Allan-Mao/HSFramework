@@ -51,6 +51,12 @@
 @property (strong,nonatomic) NSArray *orderedSpecialTags;
 
 /*!
+ @abstract XML tag attribute denoting nil value.
+ @discussion For example WCF treats nil value with attrubute xsi:nil="true".
+ */
+@property (strong,nonatomic) NSString *nilAttribute;
+
+/*!
  @abstract Automatic reload attempts if some connection errors appeared.
  @discussion After this number of attempts automatic reload won't be taken anymore. If you want only only one attempt set 0 or 1.
  */

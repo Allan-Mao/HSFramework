@@ -179,7 +179,16 @@
         body = [NSMutableString stringWithFormat:@"<%@>", SOAPTag];
         //We assume that parameter order does not matter.
         for (id key in parameters) {
-            [body appendString:[NSString stringWithFormat:@"<%@>%@</%@>", key, parameters[key], key]];
+            id value = parameters[key];
+            if (![value isKindOfClass:[NSNull class]]){
+                [body appendFormat:@"<%@>%@</%@>", key, value, key];
+            } else {
+                if (self.nilAttribute.length) {
+                    [body appendFormat:@"<%@ %@/>",key,self.nilAttribute];
+                } else {
+                    [body appendFormat:@"<%@ />",key];
+                }
+            }
         }
         [body appendString:[NSString stringWithFormat:@"</%@>", self.SOAPAction]];
     } else {
