@@ -11,7 +11,7 @@
 #import "HSFCommon.h"
 #import "HSFExceptions.h"
 
-#define HSF_CATCHER_DEBUG 1
+#define HSF_CATCHER_DEBUG 0
 
 static id <HSFCatcherHandler> _handler;
 
@@ -334,17 +334,17 @@ static id <HSFCatcherHandler> _handler;
         }
     }
 #endif
+#if defined(DEBUG) && HSF_CATCHER_DEBUG
+    if (self.cumulativeData.length){
+        NSLog(@"[%@ %@] %@, cumulativeData: %@",[self class],NSStringFromSelector(_cmd),self.actionStamp.actionClass,[[NSString alloc] initWithData:self.cumulativeData encoding:NSUTF8StringEncoding]);
+    }
+#endif
     [self finishJobAndHotifyHandler];
     
     if ([self.delegate respondsToSelector:@selector(CATCHER_DID_FINISH_LOADING_SELECTOR)])
         [self.delegate performSelector:@selector(CATCHER_DID_FINISH_LOADING_SELECTOR) withObject:self];
 #ifdef DEBUG
     NSLog(@"[%@ %@] %@",[self class],NSStringFromSelector(_cmd),self.actionStamp.actionClass);
-#endif
-#if defined(DEBUG) && HSF_CATCHER_DEBUG
-    if (self.cumulativeData.length){
-        NSLog(@"[%@ %@] cumulativeData: %@",[self class],NSStringFromSelector(_cmd),[[NSString alloc] initWithData:self.cumulativeData encoding:NSUTF8StringEncoding]);
-    }
 #endif
 }
 
