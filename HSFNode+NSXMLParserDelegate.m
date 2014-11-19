@@ -52,6 +52,9 @@
 -(void)parser:(NSXMLParser *)parser parseErrorOccurred:(NSError *)parseError
 {
 //    [NSException raise:HSFXMLParserException format:@"treeData: %@\nparserError:%@",[[NSString alloc] initWithData:self.treeData encoding:NSUTF8StringEncoding], parseError];
+#ifdef DEBUG
+    NSLog(@"[%@ %@] ERROR: %@, XML: %@",[self class],NSStringFromSelector(_cmd),parseError.localizedDescription,[[NSString alloc] initWithData:self.treeData encoding:NSUTF8StringEncoding]);
+#endif
     NSError *error = [NSError errorWithDomain:HSFParseErrorDomain code:[parseError code] userInfo:[parseError userInfo]];
     [[self rootNode] setUserInfo:@{HSF_PARSE_ERROR_KEY:error}];
 }

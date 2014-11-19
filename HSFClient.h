@@ -51,7 +51,7 @@
 /*!
  @abstract Shared instance of this singleton class.
  */
-+(id)sharedHSFClient;
++(instancetype)sharedHSFClient;
 
 @end
 

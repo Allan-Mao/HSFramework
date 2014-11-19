@@ -11,6 +11,8 @@
 #import "HSFCommon.h"
 #import "HSFExceptions.h"
 
+#define HSF_CATCHER_DEBUG 1
+
 static id <HSFCatcherHandler> _handler;
 
 @interface HSFCatcher()
@@ -74,6 +76,9 @@ static id <HSFCatcherHandler> _handler;
 
 -(void)cancel
 {
+#ifdef DEBUG
+    NSLog(@"[%@ %@] %@, catcher.isInLoading:%@",[self class],NSStringFromSelector(_cmd),self.actionStamp.actionClass,self.isInLoading?@"YES":@"NO");
+#endif
     [self finishJobAndHotifyHandler];
 }
 
@@ -93,6 +98,14 @@ static id <HSFCatcherHandler> _handler;
 
 -(void)loadAsynchronouslyWithAction:(HSFAction*)action
 {
+    //TODO: Migrate this to HSFramework.
+#ifdef DEBUG
+    NSLog(@"[%@ %@] %@",[self class],NSStringFromSelector(_cmd),[action class]);
+#endif
+#if defined(DEBUG) && HSF_CATCHER_DEBUG
+    NSLog(@"[%@ %@] %@, REQUEST:%@",[self class],NSStringFromSelector(_cmd),[action class],action.request);
+    NSLog(@"[%@ %@] %@, BODY: %@",[self class],NSStringFromSelector(_cmd),[action class],[[NSString alloc] initWithData:action.request.HTTPBody encoding:NSUTF8StringEncoding]);
+#endif
     if (self.isInLoading){
         [NSException raise:NSInvalidArgumentException format:@"Attempt to loadAsynchronously while catcher isInLoading."];
     }
@@ -307,7 +320,7 @@ static id <HSFCatcherHandler> _handler;
         }
     }
     
-    // Perform this text only in DEBUG mode.
+    // Perform this test only in DEBUG mode.
 #ifdef DEBUG
     if ([self.delegate respondsToSelector:@selector(CLIENT_DID_RECEIVE_UNIT_SELECTOR)] && [self.actionStamp.unitTags count] > 0 && [self.cumulativeData length] > 0){
         HSFNode* root = [HSFNode nodeTreeFromData:self.cumulativeData error:NULL];
@@ -325,13 +338,18 @@ static id <HSFCatcherHandler> _handler;
     
     if ([self.delegate respondsToSelector:@selector(CATCHER_DID_FINISH_LOADING_SELECTOR)])
         [self.delegate performSelector:@selector(CATCHER_DID_FINISH_LOADING_SELECTOR) withObject:self];
+#ifdef DEBUG
+    NSLog(@"[%@ %@] %@",[self class],NSStringFromSelector(_cmd),self.actionStamp.actionClass);
+#endif
+#if defined(DEBUG) && HSF_CATCHER_DEBUG
+    if (self.cumulativeData.length){
+        NSLog(@"[%@ %@] cumulativeData: %@",[self class],NSStringFromSelector(_cmd),[[NSString alloc] initWithData:self.cumulativeData encoding:NSUTF8StringEncoding]);
+    }
+#endif
 }
 
 -(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
-#ifdef DEBUG
-    NSLog(@"%@| connection:didFailWithError:%@",[self class],error);
-#endif
     ++self.failAttemptsMade;
     if ((self.actionStamp.loadAttempts > 1) && self.actionStamp.maxTimeout && self.timeout < self.actionStamp.maxTimeout) {
         self.timeout += (double)self.actionStamp.maxTimeout/(self.actionStamp.loadAttempts-1);
@@ -347,6 +365,9 @@ static id <HSFCatcherHandler> _handler;
             [self notifyDelegateFailLoadingWithError:finalError];
         }
     }
+#ifdef DEBUG
+    NSLog(@"[%@ %@] %@",[self class],NSStringFromSelector(_cmd),self.actionStamp.actionClass);
+#endif
 }
 
 -(void)connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge

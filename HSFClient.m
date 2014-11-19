@@ -98,8 +98,9 @@ static HSFClient *_sharedHSFClient;
 -(void)catcherFinished:(HSFCatcher*)catcher
 {
     @synchronized(self) {
-        if (![self.catchers containsObject:catcher])
-            [NSException raise:NSInvalidArgumentException format:@"The catcher is not known."];
+        if (![self.catchers containsObject:catcher]){
+            return;
+        }
         [self.catchers removeObject:catcher];
         
         if (catcher.actionStamp.networkActivityIndicator)
@@ -115,7 +116,7 @@ static HSFClient *_sharedHSFClient;
     [HSFCatcher setHandler:_sharedHSFClient];
 }
 
-+(id)sharedHSFClient
++(instancetype)sharedHSFClient
 {
     return _sharedHSFClient;
 }
