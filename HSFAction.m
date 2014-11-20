@@ -200,8 +200,12 @@
     // Check xml for valid xml document.
     NSXMLParser *parser = [[NSXMLParser alloc] initWithData:[xml dataUsingEncoding:NSUTF8StringEncoding]];
     [parser parse];
-    if ([parser parserError])
+    if ([parser parserError]){
+#ifdef DEBUG
+        NSLog(@"[%@ %@] EXCEPTION underlying XML: %@",[self class],NSStringFromSelector(_cmd),xml);
         [NSException raise:HSFInvalidXMLException format:@"XML document underlying HSFAction is not valid."];
+#endif
+    }
     
     return xml;
 }
