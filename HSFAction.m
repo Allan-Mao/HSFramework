@@ -67,6 +67,11 @@
     return @{};
 }
 
+-(NSArray*)SOAPParameterOrder
+{
+    return @[];
+}
+
 -(NSString*)HTTPBody
 {
     return [[NSString alloc] initWithData:[self.request HTTPBody] encoding:NSUTF8StringEncoding];
@@ -167,7 +172,7 @@
  Make xml SOAP document from parameters dictionary.
  Depends on a bunch of public methods that are meant to be customize at subclassing.
  */
--(NSString*)xmlForParameters:(NSDictionary*)parameters
+-(NSString*)xmlForParameters:(NSDictionary*)parameters order:(NSArray*)order
 {
     //TODO: refactor this code by using libXML2 with defines.
     
@@ -178,7 +183,8 @@
     if ([parameters count] > 0){
         body = [NSMutableString stringWithFormat:@"<%@>", SOAPTag];
         //We assume that parameter order does not matter.
-        for (id key in parameters) {
+        NSArray *keyOrder = (order.count)?order:[parameters allKeys];
+        for (id key in keyOrder) {
             id value = parameters[key];
             if (![value isKindOfClass:[NSNull class]]){
                 [body appendFormat:@"<%@>%@</%@>", key, value, key];
@@ -210,14 +216,13 @@
     return xml;
 }
 
-
 /*
  Update HTTP body for soap request from string into NSData and
  update "Content-Length" in request header
  */
 -(void)updateSOAPBody
 {
-    NSString *body = [self xmlForParameters:self.SOAPParameters];
+    NSString *body = [self xmlForParameters:self.SOAPParameters order:self.SOAPParameterOrder];
     [_request setHTTPBody:[body dataUsingEncoding:NSUTF8StringEncoding]];
 }
 

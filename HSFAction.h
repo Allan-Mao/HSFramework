@@ -123,6 +123,12 @@
  */
 @property (strong,nonatomic,readonly) NSDictionary *SOAPParameters;
 
+/*!
+ @abstract Order of the parameter keys used for SOAP XML document
+ @discussion Leave empty or nil, if order does not matter.
+ */
+@property (strong,nonatomic,readonly) NSArray *SOAPParameterOrder;
+
 #pragma mark Tasks
 
 /*!
