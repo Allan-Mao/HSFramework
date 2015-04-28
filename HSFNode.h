@@ -25,7 +25,7 @@
  @abstract Parent node.
  @discussion Every node can have multiple children elements and only one parent.
  */
-@property (strong,nonatomic,readonly) HSFNode *parent;
+@property (weak,nonatomic,readonly) HSFNode *parent;
 
 /*!
  @abstract Root node of the tree.

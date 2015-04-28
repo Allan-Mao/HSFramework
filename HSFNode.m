@@ -11,7 +11,7 @@
 
 @interface HSFNode()
 
-@property (strong,nonatomic,readwrite) HSFNode *parent;
+@property (weak,nonatomic,readwrite) HSFNode *parent;
 @property (strong,nonatomic) NSMutableArray *mutableChildren;
 
 @end
